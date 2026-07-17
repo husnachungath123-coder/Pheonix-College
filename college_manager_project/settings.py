@@ -22,19 +22,24 @@ if _env_path.exists():
 # SECURITY WARNING: keep the secret key used in production secret!
 # Set DJANGO_SECRET_KEY in the environment (or a local .env file, see .env.example).
 # The fallback below is ONLY for first-run local dev convenience and is not secret.
+
 SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-CHANGE-ME-see-.env.example-for-how-to-set-a-real-key',
+    "SECRET_KEY",
+    "django-insecure-change-this-for-local-development"
 )
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Defaults to False; set DJANGO_DEBUG=True in your local .env for development.
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False').strip().lower() in ('1', 'true', 'yes')
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 # Comma-separated list, e.g. "example.com,api.example.com"
 ALLOWED_HOSTS = [
-    h.strip() for h in os.environ.get('DJANGO_ALLOWED_HOSTS', '').split(',') if h.strip()
+    ".onrender.com",
+    "127.0.0.1",
+    "localhost",
 ]
+
 if DEBUG and not ALLOWED_HOSTS:
     # Convenient defaults for local development only.
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', '10.0.2.2']
@@ -116,20 +121,29 @@ WSGI_APPLICATION = 'college_manager_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-"""DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}"""
+#DATABASES = {
+ #   'default': {
+  #      'ENGINE': 'django.db.backends.sqlite3',
+   #     'NAME': BASE_DIR / 'db.sqlite3',
+    #}
+#}
 import dj_database_url
 
-DATABASES = {
-    "default": dj_database_url.parse(
-        os.environ.get("DATABASE_URL")
-    )
-}
+# Database Configuration
 
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(DATABASE_URL)
+    }
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -165,10 +179,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
+
 STATICFILES_DIRS = [
-    BASE_DIR / 'static',
+    BASE_DIR / "static",
 ]
+
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 # Default primary key field type

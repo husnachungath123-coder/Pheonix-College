@@ -1,7 +1,9 @@
-Django
+Django>=5.2,<6.0
 gunicorn
 whitenoise
 dj-database-url
 psycopg2-binary
 djangorestframework
 django-cors-headers
+'crispy_forms',
+'crispy_bootstrap5',
