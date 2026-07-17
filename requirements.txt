@@ -5,5 +5,5 @@ dj-database-url
 psycopg2-binary
 djangorestframework
 django-cors-headers
-'crispy_forms',
-'crispy_bootstrap5',
+crispy_forms
+crispy_bootstrap5
