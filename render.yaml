@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: college-manager
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn college_manager_project.wsgi:application"

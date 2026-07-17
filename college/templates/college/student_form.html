@@ -1,0 +1,128 @@
+{% extends 'college/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{{ action }} Student - Pheonix College{% endblock %}
+{% block page_title %}{{ action }} Student{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+
+            <div class="card glass-card border-0 p-5">
+                <!-- Card header -->
+                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-light">
+                    <div class="rounded-3 p-3 text-primary" style="background: rgba(79,70,229,.1);">
+                        <i class="fa-solid fa-user-graduate fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="m-0 fw-bold">{{ action }} Student Profile</h5>
+                        <small class="text-muted">Fill in the details below and click <strong>{{ btn_label }}</strong>.</small>
+                    </div>
+                </div>
+
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Personal Information -->
+                    <h6 class="text-muted text-uppercase fw-semibold mb-3" style="font-size:.75rem;letter-spacing:.08em;">
+                        Personal Information
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-sm-6">
+                            <label for="id_first_name" class="form-label small">First Name</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="id_last_name" class="form-label small">Last Name</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="id_roll_number" class="form-label small">Roll Number</label>
+                            {{ form.roll_number }}
+                            {% if form.roll_number.errors %}
+                                <div class="text-danger small mt-1">{{ form.roll_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="id_admission_number" class="form-label small">Admission Number</label>
+                            {{ form.admission_number }}
+                            {% if form.admission_number.errors %}
+                                <div class="text-danger small mt-1">{{ form.admission_number.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label for="id_parent_phone" class="form-label small">Parent / Guardian Phone</label>
+                            {{ form.parent_phone }}
+                            {% if form.parent_phone.errors %}
+                                <div class="text-danger small mt-1">{{ form.parent_phone.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Academic Information -->
+                    <h6 class="text-muted text-uppercase fw-semibold mb-3" style="font-size:.75rem;letter-spacing:.08em;">
+                        Academic Information
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-sm-6">
+                            <label for="id_class_name" class="form-label small">Class / Course</label>
+                            {{ form.class_name }}
+                            <small class="text-muted">e.g. BCA, BCom, MCA</small>
+                            {% if form.class_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.class_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label for="id_batch" class="form-label small">Batch Year</label>
+                            {{ form.batch }}
+                            <small class="text-muted">e.g. 2024-2027</small>
+                            {% if form.batch.errors %}
+                                <div class="text-danger small mt-1">{{ form.batch.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Fee Information -->
+                    <h6 class="text-muted text-uppercase fw-semibold mb-3" style="font-size:.75rem;letter-spacing:.08em;">
+                        Fee Structure
+                    </h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-sm-6">
+                            <label for="id_total_course_fee" class="form-label small">Total Course Fee (Rs.)</label>
+                            {{ form.total_course_fee }}
+                            {% if form.total_course_fee.errors %}
+                                <div class="text-danger small mt-1">{{ form.total_course_fee.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 col-sm-6 d-flex align-items-end pb-1">
+                            <div class="form-check">
+                                {{ form.is_active }}
+                                <label class="form-check-label small ms-2" for="id_is_active">
+                                    Student is currently active / enrolled
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 mt-2">
+                        <button type="submit" class="btn btn-primary px-5">
+                            <i class="fa-solid fa-floppy-disk me-2"></i>{{ btn_label }}
+                        </button>
+                        <a href="{% url 'student_list' %}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

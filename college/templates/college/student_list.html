@@ -1,0 +1,121 @@
+{% extends 'college/base.html' %}
+{% block title %}Students - Pheonix College{% endblock %}
+{% block page_title %}Student Directory{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <!-- Filters & Search -->
+    <div class="card glass-card border-0 p-4 mb-4">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-12 col-md-4">
+                <label for="search" class="form-label small text-muted">Search Student</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" name="search" id="search" value="{{ search_query }}"
+                           class="form-control border-start-0" placeholder="Name, Roll No, Admission No…">
+                </div>
+            </div>
+            <div class="col-6 col-md-2">
+                <label for="class_name" class="form-label small text-muted">Class / Course</label>
+                <select name="class_name" id="class_name" class="form-select">
+                    <option value="">All Classes</option>
+                    {% for cls in classes %}
+                    <option value="{{ cls }}" {% if class_filter == cls %}selected{% endif %}>{{ cls }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <label for="batch" class="form-label small text-muted">Batch</label>
+                <select name="batch" id="batch" class="form-select">
+                    <option value="">All Batches</option>
+                    {% for b in batches %}
+                    <option value="{{ b }}" {% if batch_filter == b %}selected{% endif %}>{{ b }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fa-solid fa-filter me-2"></i>Filter
+                </button>
+                <a href="{% url 'student_list' %}" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Header Row with count & Add button -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h6 class="m-0 text-muted">
+            Showing <strong>{{ total_count }}</strong> active students
+        </h6>
+        <a href="{% url 'student_add' %}" class="btn btn-primary d-flex align-items-center gap-2">
+            <i class="fa-solid fa-user-plus"></i> Add New Student
+        </a>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card glass-card border-0 p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">#</th>
+                        <th>Student Name</th>
+                        <th>Roll Number</th>
+                        <th>Admission No.</th>
+                        <th>Class & Batch</th>
+                        <th>Parent Phone</th>
+                        <th>Course Fee</th>
+                        <th>Pending Fee</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td class="ps-4 text-muted small">{{ forloop.counter }}</td>
+                        <td>
+                            <span class="fw-semibold">{{ student.full_name }}</span>
+                        </td>
+                        <td><code class="text-secondary">{{ student.roll_number }}</code></td>
+                        <td class="text-muted small">{{ student.admission_number }}</td>
+                        <td>{{ student.class_name }} <span class="text-muted">({{ student.batch }})</span></td>
+                        <td class="text-muted small">{{ student.parent_phone }}</td>
+                        <td>Rs. {{ student.total_course_fee|floatformat:0 }}</td>
+                        <td class="{% if student.pending_fee > 0 %}text-danger fw-semibold{% else %}text-success{% endif %}">
+                            Rs. {{ student.pending_fee|floatformat:0 }}
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-1">
+                                <a href="{% url 'student_edit' student.pk %}"
+                                   class="btn btn-sm btn-outline-primary py-1 px-2"
+                                   title="Edit Student">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
+                                <a href="{% url 'student_delete' student.pk %}"
+                                   class="btn btn-sm btn-outline-danger py-1 px-2"
+                                   title="Delete Student">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-users-slash fs-2 mb-3 d-block text-secondary"></i>
+                            No students found. <a href="{% url 'student_add' %}">Add the first student →</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

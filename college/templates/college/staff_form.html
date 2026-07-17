@@ -1,0 +1,114 @@
+{% extends 'college/base.html' %}
+{% block title %}{{ action }} Staff - Pheonix College{% endblock %}
+{% block page_title %}{{ action }} Staff Member{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-7">
+
+            <div class="card glass-card border-0 p-5">
+                <!-- Header -->
+                <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-light">
+                    <div class="rounded-3 p-3 text-primary" style="background:rgba(79,70,229,.1);">
+                        <i class="fa-solid fa-user-tie fs-4"></i>
+                    </div>
+                    <div>
+                        <h5 class="m-0 fw-bold">{{ action }} Staff Profile</h5>
+                        <small class="text-muted">
+                            {% if staff_user %}
+                                Editing <strong>{{ staff_user.get_full_name }}</strong>
+                            {% else %}
+                                Fill in all fields to create a new staff login account.
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+
+                    <!-- Personal Details -->
+                    <h6 class="text-muted text-uppercase fw-semibold mb-3"
+                        style="font-size:.72rem;letter-spacing:.08em;">Personal Details</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label small">First Name</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label small">Last Name</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}
+                                <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label small">Email Address</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label small">Phone Number</label>
+                            {{ form.phone }}
+                        </div>
+                    </div>
+
+                    <!-- Login Credentials (only on Add) -->
+                    {% if form.username %}
+                    <h6 class="text-muted text-uppercase fw-semibold mb-3"
+                        style="font-size:.72rem;letter-spacing:.08em;">Login Credentials</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label small">Username <span class="text-danger">*</span></label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label small">Password <span class="text-danger">*</span></label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label small">Confirm Password <span class="text-danger">*</span></label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}
+                                <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Salary -->
+                    <h6 class="text-muted text-uppercase fw-semibold mb-3"
+                        style="font-size:.72rem;letter-spacing:.08em;">Payroll Setting</h6>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-sm-6">
+                            <label class="form-label small">Monthly Basic Salary (Rs.)</label>
+                            {{ form.salary }}
+                            {% if form.salary.errors %}
+                                <div class="text-danger small mt-1">{{ form.salary.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Buttons -->
+                    <div class="d-flex gap-3 mt-2">
+                        <button type="submit" class="btn btn-primary px-5">
+                            <i class="fa-solid fa-floppy-disk me-2"></i>{{ btn_label }}
+                        </button>
+                        <a href="{% url 'staff_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

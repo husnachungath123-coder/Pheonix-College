@@ -1,0 +1,187 @@
+{% extends 'college/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Fee Collection - Pheonix College{% endblock %}
+{% block page_title %}Fee Collection & Ledgers{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <!-- Filters and Searches -->
+    <div class="card glass-card border-0 p-4 mb-4">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-12 col-md-4">
+                <label for="search" class="form-label small text-muted">Search Student</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text" name="search" id="search" value="{{ search_query }}" class="form-control border-start-0" placeholder="Name, Roll or Admission No.">
+                </div>
+            </div>
+
+            <div class="col-12 col-sm-6 col-md-2">
+                <label for="class_name" class="form-label small text-muted">Class/Course</label>
+                <select name="class_name" id="class_name" class="form-select">
+                    <option value="">All Classes</option>
+                    {% for cls in classes %}
+                    <option value="{{ cls }}" {% if class_filter == cls %}selected{% endif %}>{{ cls }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-12 col-sm-6 col-md-2">
+                <label for="batch" class="form-label small text-muted">Batch</label>
+                <select name="batch" id="batch" class="form-select">
+                    <option value="">All Batches</option>
+                    {% for b in batches %}
+                    <option value="{{ b }}" {% if batch_filter == b %}selected{% endif %}>{{ b }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-12 col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fa-solid fa-filter me-2"></i>Filter
+                </button>
+                <a href="{% url 'fee_collection' %}" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Actions Panel -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h6 class="m-0 text-muted">Showing student fee records.</h6>
+        <div class="d-flex gap-2">
+            <a href="{% url 'fee_defaulters' %}" class="btn btn-sm btn-outline-danger">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i> Defaulters List
+            </a>
+            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#payFeeModal">
+                <i class="fa-solid fa-plus me-1"></i> Record Fee Payment
+            </button>
+            <a href="{% url 'export_fees_excel' %}?class_name={{ class_filter }}&batch={{ batch_filter }}" class="btn btn-sm btn-outline-success">
+                <i class="fa-solid fa-file-excel me-1"></i> Excel
+            </a>
+            <a href="{% url 'export_fees_pdf' %}?class_name={{ class_filter }}&batch={{ batch_filter }}" class="btn btn-sm btn-outline-danger">
+                <i class="fa-solid fa-file-pdf me-1"></i> PDF
+            </a>
+        </div>
+    </div>
+
+    <!-- Students Fee Ledger Table -->
+    <div class="card glass-card border-0 p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Student</th>
+                        <th>Class & Batch</th>
+                        <th>Total Course Fee</th>
+                        <th>Total Paid</th>
+                        <th>Pending Balance</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                    <tr>
+                        <td class="ps-4">
+                            <span class="fw-semibold text-main">{{ student.full_name }}</span>
+                            <div class="small text-muted">{{ student.roll_number }}</div>
+                        </td>
+                        <td>{{ student.class_name }} <span class="text-muted">({{ student.batch }})</span></td>
+                        <td>Rs. {{ student.total_course_fee|floatformat:2 }}</td>
+                        <td class="text-success fw-medium">Rs. {{ student.paid_fee|floatformat:2 }}</td>
+                        <td class="{% if student.pending_fee > 0 %}text-danger{% else %}text-muted{% endif %} fw-semibold">
+                            Rs. {{ student.pending_fee|floatformat:2 }}
+                        </td>
+                        <td>
+                            {% if student.pending_fee <= 0 %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-3 py-2">Fully Paid</span>
+                            {% else %}
+                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20 px-3 py-2">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            {% if student.pending_fee > 0 %}
+                            <button class="btn btn-sm btn-primary py-1 px-3 pay-fee-btn" data-student-id="{{ student.id }}" data-student-name="{{ student.full_name }}" data-pending-amount="{{ student.pending_fee }}" data-bs-toggle="modal" data-bs-target="#payFeeModal">
+                                Pay Fee
+                            </button>
+                            {% else %}
+                            <button class="btn btn-sm btn-outline-secondary py-1 px-3" disabled>Paid</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-wallet fs-2 mb-3 d-block text-secondary"></i>
+                            No student billing records found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Record Fee Payment Modal -->
+<div class="modal fade" id="payFeeModal" tabindex="-1" aria-labelledby="payFeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0">
+            <div class="modal-header border-bottom border-light">
+                <h5 class="modal-title font-weight-bold" id="payFeeModalLabel">
+                    <i class="fa-solid fa-wallet text-success me-2"></i>Record Student Fee Payment
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'add_fee_payment' %}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body py-4">
+                    {{ form|crispy }}
+                </div>
+                <div class="modal-footer border-top border-light">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-4">Save Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const payFeeBtns = document.querySelectorAll('.pay-fee-btn');
+        const studentSelect = document.querySelector('#id_student');
+        const amountInput = document.querySelector('#id_amount_paid');
+        const dateInput = document.querySelector('#id_payment_date');
+
+        // Set default date to today
+        if (dateInput && !dateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+        }
+
+        payFeeBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const studentId = this.getAttribute('data-student-id');
+                const pendingAmt = this.getAttribute('data-pending-amount');
+                
+                // Select student in modal dropdown
+                if (studentSelect) {
+                    studentSelect.value = studentId;
+                }
+                
+                // Pre-fill amount field with pending amount
+                if (amountInput) {
+                    amountInput.value = pendingAmt;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,161 @@
+{% extends 'college/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Daily Accounts - Pheonix College{% endblock %}
+{% block page_title %}Daily Income & Expense Ledger{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <!-- Financial Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="card glass-card border-0 p-3 bg-success bg-opacity-10 text-success">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="small text-muted d-block">Total Income</span>
+                        <h4 class="mt-2 mb-0 font-weight-bold">Rs. {{ total_income|floatformat:2 }}</h4>
+                    </div>
+                    <div class="rounded-3 p-3 bg-success bg-opacity-15">
+                        <i class="fa-solid fa-arrow-down-long fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-md-4">
+            <div class="card glass-card border-0 p-3 bg-danger bg-opacity-10 text-danger">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="small text-muted d-block">Total Expense</span>
+                        <h4 class="mt-2 mb-0 font-weight-bold">Rs. {{ total_expense|floatformat:2 }}</h4>
+                    </div>
+                    <div class="rounded-3 p-3 bg-danger bg-opacity-15">
+                        <i class="fa-solid fa-arrow-up-long fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="card glass-card border-0 p-3 {% if net_profit >= 0 %}bg-primary bg-opacity-10 text-primary{% else %}bg-warning bg-opacity-10 text-warning{% endif %}">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="small text-muted d-block">Net Balance (Surplus)</span>
+                        <h4 class="mt-2 mb-0 font-weight-bold">Rs. {{ net_profit|floatformat:2 }}</h4>
+                    </div>
+                    <div class="rounded-3 p-3 bg-opacity-15 {% if net_profit >= 0 %}bg-primary{% else %}bg-warning{% endif %}">
+                        <i class="fa-solid fa-scale-balanced fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ledger & Log Transaction Form -->
+    <div class="row g-4">
+        <!-- Transactions Ledger List (Left Column) -->
+        <div class="col-12 col-lg-8">
+            <div class="card glass-card border-0 p-4 mb-4">
+                <h6 class="font-weight-bold mb-3">Filter Transactions</h6>
+                <form method="GET" class="row g-3 align-items-end">
+                    <div class="col-6 col-sm-3">
+                        <label for="start_date" class="form-label small text-muted">Start Date</label>
+                        <input type="date" name="start_date" id="start_date" value="{{ start_date }}" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <label for="end_date" class="form-label small text-muted">End Date</label>
+                        <input type="date" name="end_date" id="end_date" value="{{ end_date }}" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <label for="type" class="form-label small text-muted">Type</label>
+                        <select name="type" id="type" class="form-select form-select-sm">
+                            <option value="">All</option>
+                            <option value="INCOME" {% if type_filter == 'INCOME' %}selected{% endif %}>Income</option>
+                            <option value="EXPENSE" {% if type_filter == 'EXPENSE' %}selected{% endif %}>Expense</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-sm-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
+                        <a href="{% url 'accounts_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fa-solid fa-arrows-rotate"></i></a>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Export Buttons -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="m-0 text-muted">Ledger Records</h6>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'export_accounts_excel' %}?start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-sm btn-outline-success">
+                        <i class="fa-solid fa-file-excel me-1"></i> Excel
+                    </a>
+                    <a href="{% url 'export_accounts_pdf' %}?start_date={{ start_date }}&end_date={{ end_date }}" class="btn btn-sm btn-outline-danger">
+                        <i class="fa-solid fa-file-pdf me-1"></i> PDF
+                    </a>
+                </div>
+            </div>
+
+            <div class="card glass-card border-0 p-0 overflow-hidden">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Date</th>
+                                <th>Category</th>
+                                <th>Method</th>
+                                <th>Description</th>
+                                <th class="text-end pe-4">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for trans in transactions %}
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="fw-semibold text-main">{{ trans.date|date:"d-M-Y" }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge {% if trans.transaction_type == 'INCOME' %}bg-success bg-opacity-10 text-success border border-success border-opacity-20{% else %}bg-danger bg-opacity-10 text-danger border border-danger border-opacity-20{% endif %} px-2.5 py-1.5">
+                                        {{ trans.category }}
+                                    </span>
+                                </td>
+                                <td>{{ trans.get_payment_method_display }}</td>
+                                <td><span class="text-muted small">{{ trans.description|default:"-" }}</span></td>
+                                <td class="text-end pe-4 fw-bold {% if trans.transaction_type == 'INCOME' %}text-success{% else %}text-danger{% endif %}">
+                                    {% if trans.transaction_type == 'INCOME' %}+{% else %}-{% endif %}Rs. {{ trans.amount|floatformat:2 }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="fa-solid fa-scale-unbalanced fs-2 mb-3 d-block text-secondary"></i>
+                                    No ledger entries recorded yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Log Daily Transaction (Right Column) -->
+        <div class="col-12 col-lg-4">
+            <div class="card glass-card border-0 p-4 position-sticky" style="top: 98px;">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <i class="fa-solid fa-plus-circle text-primary fs-5"></i>
+                    <h6 class="font-weight-bold m-0">Log New Transaction</h6>
+                </div>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    
+                    <button type="submit" class="btn btn-primary w-100 mt-3">
+                        <i class="fa-solid fa-floppy-disk me-2"></i>Save Record
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

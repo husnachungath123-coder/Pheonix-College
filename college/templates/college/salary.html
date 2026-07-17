@@ -1,0 +1,209 @@
+{% extends 'college/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Staff Salary - Pheonix College{% endblock %}
+{% block page_title %}Staff Salary Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+
+    <!-- Month Filter Card -->
+    <div class="card glass-card border-0 p-4 mb-4">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-12 col-md-6 col-lg-4">
+                <label for="month" class="form-label small text-muted">Select Salary Month</label>
+                <input type="month" name="month" id="month" value="{{ selected_month }}" class="form-control">
+            </div>
+            
+            <div class="col-12 col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fa-solid fa-calendar-check me-2"></i>Load Ledger
+                </button>
+                <a href="{% url 'salary_list' %}" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Payroll Status Banner -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h6 class="m-0 text-muted">Payroll sheet for month: <strong>{{ selected_month }}</strong></h6>
+        <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#paySalaryModal">
+            <i class="fa-solid fa-plus me-1"></i> Record Salary Statement
+        </button>
+    </div>
+
+    <!-- Staff Payroll Ledger Table -->
+    <div class="card glass-card border-0 p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Staff Member</th>
+                        <th>Role Designation</th>
+                        <th>Registered Basic Salary</th>
+                        <th>Deductions (Adv / Other)</th>
+                        <th>Net Amount Paid</th>
+                        <th>Payment Date</th>
+                        <th>Status</th>
+                        <th class="text-end pe-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in staff_list %}
+                    <tr>
+                        <td class="ps-4">
+                            <strong class="text-main">{{ item.user.get_full_name|default:item.user.username }}</strong>
+                            <div class="small text-muted">{{ item.user.email }}</div>
+                        </td>
+                        <td>{{ item.user.profile.get_role_display }}</td>
+                        <td>Rs. {{ item.basic_salary|floatformat:2 }}</td>
+                        <td>
+                            {% if item.payment %}
+                            <span class="text-danger small">
+                                Adv: Rs.{{ item.payment.advance_deducted|floatformat:0 }} | Oth: Rs.{{ item.payment.other_deductions|floatformat:0 }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold text-success">
+                            {% if item.payment %}
+                            Rs. {{ item.payment.amount_paid|floatformat:2 }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.payment %}
+                            {{ item.payment.payment_date|date:"d-M-Y" }}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.payment and item.payment.payment_status == 'PAID' %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-20 px-3 py-2">Paid</span>
+                            {% else %}
+                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-20 px-3 py-2">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            {% if not item.payment or item.payment.payment_status != 'PAID' %}
+                            <button class="btn btn-sm btn-primary py-1 px-3 pay-salary-btn" data-staff-id="{{ item.user.id }}" data-staff-name="{{ item.user.get_full_name|default:item.user.username }}" data-basic-salary="{{ item.basic_salary }}" data-bs-toggle="modal" data-bs-target="#paySalaryModal">
+                                Pay Salary
+                            </button>
+                            {% else %}
+                            <button class="btn btn-sm btn-outline-secondary py-1 px-3" disabled>Completed</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="fa-solid fa-user-tie fs-2 mb-3 d-block text-secondary"></i>
+                            No staff accounts configured. Add staff profiles via Django Admin.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- Record Salary Payment Modal -->
+<div class="modal fade" id="paySalaryModal" tabindex="-1" aria-labelledby="paySalaryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0">
+            <div class="modal-header border-bottom border-light">
+                <h5 class="modal-title font-weight-bold" id="paySalaryModalLabel">
+                    <i class="fa-solid fa-file-invoice-dollar text-success me-2"></i>Record Salary Payment
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'salary_list' %}?month={{ selected_month }}" method="POST">
+                {% csrf_token %}
+                <div class="modal-body py-4">
+                    {{ form|crispy }}
+                    
+                    <!-- Dynamic calculator summary -->
+                    <div class="mt-4 p-3 bg-light rounded-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small text-muted">Calculated Net Payable:</span>
+                            <span class="fw-bold text-success fs-5" id="netPayableText">Rs. 0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top border-light">
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary btn-sm px-4">Record & Disburse</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const payBtns = document.querySelectorAll('.pay-salary-btn');
+        const staffSelect = document.querySelector('#id_staff');
+        const basicInput = document.querySelector('#id_basic_salary');
+        const advanceInput = document.querySelector('#id_advance_deducted');
+        const otherInput = document.querySelector('#id_other_deductions');
+        const amountInput = document.querySelector('#id_amount_paid');
+        const netPayableText = document.querySelector('#netPayableText');
+        const dateInput = document.querySelector('#id_payment_date');
+
+        // Set default date to today
+        if (dateInput && !dateInput.value) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+        }
+
+        // Net Salary calculation
+        function calculateNetSalary() {
+            const basic = parseFloat(basicInput.value) || 0;
+            const adv = parseFloat(advanceInput.value) || 0;
+            const other = parseFloat(otherInput.value) || 0;
+            const net = Math.max(0, basic - adv - other);
+            
+            if (amountInput) {
+                amountInput.value = net.toFixed(2);
+            }
+            if (netPayableText) {
+                netPayableText.textContent = 'Rs. ' + net.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+        }
+
+        if (basicInput) basicInput.addEventListener('input', calculateNetSalary);
+        if (advanceInput) advanceInput.addEventListener('input', calculateNetSalary);
+        if (otherInput) otherInput.addEventListener('input', calculateNetSalary);
+
+        // Pre-fill modal details when clicking Pay Salary
+        payBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const staffId = this.getAttribute('data-staff-id');
+                const basicSalary = this.getAttribute('data-basic-salary');
+                
+                if (staffSelect) {
+                    staffSelect.value = staffId;
+                }
+                
+                if (basicInput) {
+                    basicInput.value = basicSalary;
+                }
+                
+                // Clear deductions initially
+                if (advanceInput) advanceInput.value = "0.00";
+                if (otherInput) otherInput.value = "0.00";
+                
+                calculateNetSalary();
+            });
+        });
+    });
+</script>
+{% endblock %}

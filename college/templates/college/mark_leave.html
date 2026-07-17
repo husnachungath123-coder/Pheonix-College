@@ -1,0 +1,33 @@
+{% extends 'college/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Register Leave - Pheonix College{% endblock %}
+{% block page_title %}Register Student Leave{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card glass-card border-0 p-4">
+                <div class="d-flex align-items-center gap-2 mb-4">
+                    <i class="fa-solid fa-envelope-open-text fs-4 text-warning"></i>
+                    <h5 class="m-0 font-weight-bold">Leave Request Log</h5>
+                </div>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fa-solid fa-check-double me-2"></i>Register Leave
+                        </button>
+                        <a href="{% url 'attendance_list' %}" class="btn btn-outline-secondary w-50">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
