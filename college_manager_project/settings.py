@@ -36,9 +36,10 @@ DEBUG = os.environ.get("DEBUG", "False") == "True"
 # Comma-separated list, e.g. "example.com,api.example.com"
 ALLOWED_HOSTS = [
     ".onrender.com",
-    "127.0.0.1",
     "localhost",
+    "127.0.0.1",
 ]
+
 
 if DEBUG and not ALLOWED_HOSTS:
     # Convenient defaults for local development only.
@@ -181,9 +182,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+STATICFILES_DIRS = [BASE_DIR / "college" / "static"]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
